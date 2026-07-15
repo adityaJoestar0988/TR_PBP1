@@ -20,6 +20,7 @@ class StoreSetting extends Model
         'phone',
         'receipt_footer',
         'allow_kasir_discount',
+        'allowed_discount_type',
         'payment_methods',
     ];
 

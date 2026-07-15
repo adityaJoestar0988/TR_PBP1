@@ -17,7 +17,7 @@ class PosController extends Controller
         $query = Product::with('category:id,name')
             ->where('is_active', true)
             ->where('stock', '>', 0)
-            ->select('id', 'name', 'price', 'stock', 'category_id');
+            ->select('id', 'name', 'price', 'stock', 'category_id', 'image');
 
         if ($request->has('search') && $request->search != '') {
             $query->where('name', 'like', '%' . $request->search . '%');
@@ -57,6 +57,7 @@ class PosController extends Controller
             'status' => 'success',
             'data' => [
                 'allow_kasir_discount' => $settings ? $settings->allow_kasir_discount : false,
+                'allowed_discount_type' => $settings ? $settings->allowed_discount_type : null,
                 'payment_methods' => $settings ? $settings->payment_methods : ['Cash'],
                 'store_name' => $settings ? $settings->store_name : 'SMART POS',
                 'address' => $settings ? $settings->address : 'Alamat Toko',

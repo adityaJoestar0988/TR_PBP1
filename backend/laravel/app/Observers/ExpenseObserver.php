@@ -14,6 +14,8 @@ class ExpenseObserver
         CashFlow::create([
             'type' => 'out',
             'amount' => $expense->amount,
+            'unit_price' => $expense->unit_price,
+            'quantity' => $expense->quantity,
             'source_type' => 'expense',
             'source_id' => $expense->id,
             'date' => $expense->date,
@@ -23,7 +25,7 @@ class ExpenseObserver
 
     public function updated(Expense $expense): void
     {
-        if (! $expense->wasChanged(['amount', 'date', 'type', 'raw_material_id', 'description'])) {
+        if (! $expense->wasChanged(['amount', 'unit_price', 'quantity', 'date', 'type', 'raw_material_id', 'description'])) {
             return;
         }
 
@@ -39,6 +41,8 @@ class ExpenseObserver
 
         $cashFlow->update([
             'amount' => $expense->amount,
+            'unit_price' => $expense->unit_price,
+            'quantity' => $expense->quantity,
             'date' => $expense->date,
             'description' => $this->buildDescription($expense),
         ]);

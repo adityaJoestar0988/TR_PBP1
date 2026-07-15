@@ -22,6 +22,7 @@ class StoreSettingController extends Controller
                 'phone' => '08123456789',
                 'receipt_footer' => 'Terima Kasih Atas Kunjungan Anda!',
                 'allow_kasir_discount' => false,
+                'allowed_discount_type' => null,
                 'payment_methods' => ['Cash'],
             ]);
         }
@@ -43,9 +44,14 @@ class StoreSettingController extends Controller
             'phone' => 'nullable|string|max:20',
             'receipt_footer' => 'nullable|string',
             'allow_kasir_discount' => 'required|boolean',
+            'allowed_discount_type' => 'required_if:allow_kasir_discount,true|in:nominal,percentage|nullable',
             'payment_methods' => 'required|array|min:1',
             'payment_methods.*' => 'required|string|min:1',
         ]);
+
+        if (!$validated['allow_kasir_discount']) {
+            $validated['allowed_discount_type'] = null;
+        }
 
         $settings = StoreSetting::first();
 

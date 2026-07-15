@@ -57,6 +57,12 @@ class TransactionService
                         'discount' => "Anda tidak memiliki izin memberikan diskon."
                     ]);
                 }
+
+                if ($settings->allowed_discount_type !== $discountType) {
+                    throw ValidationException::withMessages([
+                        'discount' => "Jenis diskon yang digunakan tidak sesuai dengan kebijakan yang berlaku."
+                    ]);
+                }
                 
                 if ($discountType === 'percentage') {
                     if ($discountValue < 0 || $discountValue > 100) {

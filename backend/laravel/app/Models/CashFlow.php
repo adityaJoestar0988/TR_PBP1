@@ -17,6 +17,8 @@ class CashFlow extends Model
     protected $fillable = [
         'type',
         'amount',
+        'unit_price',
+        'quantity',
         'source_type',
         'source_id',
         'date',
@@ -30,6 +32,8 @@ class CashFlow extends Model
      */
     protected $casts = [
         'amount' => 'decimal:2',
+        'unit_price' => 'decimal:2',
+        'quantity' => 'integer',
         'date' => 'date',
     ];
 }

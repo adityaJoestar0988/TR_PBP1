@@ -1,7 +1,12 @@
 import React from 'react'
 
 export default function ReceiptView({ transaction, settings }) {
-  if (!transaction || !settings) return null;
+  if (!transaction) return null;
+
+  const storeName = settings?.store_name || 'SMART POS'
+  const storeAddress = settings?.address || ''
+  const storePhone = settings?.phone || ''
+  const receiptFooter = settings?.receipt_footer || 'Terima Kasih'
 
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -32,9 +37,9 @@ export default function ReceiptView({ transaction, settings }) {
         
         {/* Header */}
         <div className="text-center mb-6 border-b-2 border-dashed border-slate-300 pb-4">
-          <h2 className="text-xl font-bold uppercase tracking-wider mb-1">{settings.store_name}</h2>
-          <p className="text-xs text-slate-600 mb-1">{settings.address}</p>
-          <p className="text-xs text-slate-600">Telp: {settings.phone}</p>
+          <h2 className="text-xl font-bold uppercase tracking-wider mb-1">{storeName}</h2>
+          <p className="text-xs text-slate-600 mb-1">{storeAddress}</p>
+          <p className="text-xs text-slate-600">Telp: {storePhone}</p>
         </div>
 
         {/* Meta */}
@@ -100,7 +105,7 @@ export default function ReceiptView({ transaction, settings }) {
 
         {/* Footer */}
         <div className="text-center mt-8 text-xs text-slate-500">
-          <p>{settings.receipt_footer}</p>
+          <p>{receiptFooter}</p>
         </div>
       </div>
 

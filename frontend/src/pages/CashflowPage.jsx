@@ -175,6 +175,8 @@ export default function CashflowPage() {
                   <th className="px-6 py-4 font-medium">Tanggal</th>
                   <th className="px-6 py-4 font-medium">Tipe</th>
                   <th className="px-6 py-4 font-medium">Sumber</th>
+                  <th className="px-6 py-4 font-medium">Harga Satuan</th>
+                  <th className="px-6 py-4 font-medium">Qty</th>
                   <th className="px-6 py-4 font-medium">Deskripsi</th>
                   <th className="px-6 py-4 font-medium text-right">Nominal</th>
                 </tr>
@@ -182,13 +184,13 @@ export default function CashflowPage() {
               <tbody className="divide-y divide-slate-800">
                 {loading ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-10 text-center">
+                    <td colSpan="7" className="px-6 py-10 text-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
                     </td>
                   </tr>
                 ) : ledger.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-10 text-center text-slate-500">
+                    <td colSpan="7" className="px-6 py-10 text-center text-slate-500">
                       Tidak ada pergerakan kas di periode ini.
                     </td>
                   </tr>
@@ -206,6 +208,8 @@ export default function CashflowPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-300">{getSourceLabel(row.source_type)}</td>
+                      <td className="px-6 py-4 text-slate-300">{row.unit_price ? formatRupiah(row.unit_price) : '-'}</td>
+                      <td className="px-6 py-4 text-slate-300">{row.quantity || '-'}</td>
                       <td className="px-6 py-4 text-slate-300 max-w-md truncate">{row.description}</td>
                       <td className={`px-6 py-4 font-bold text-right ${
                         row.type === 'in' ? 'text-green-400' : 'text-red-400'

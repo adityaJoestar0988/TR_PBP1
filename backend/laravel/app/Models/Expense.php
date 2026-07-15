@@ -19,6 +19,8 @@ class Expense extends Model
         'date',
         'type',
         'raw_material_id',
+        'unit_price',
+        'quantity',
         'amount',
         'description',
         'user_id',
@@ -31,6 +33,8 @@ class Expense extends Model
      */
     protected $casts = [
         'date' => 'date',
+        'unit_price' => 'decimal:2',
+        'quantity' => 'integer',
         'amount' => 'decimal:2',
     ];
 

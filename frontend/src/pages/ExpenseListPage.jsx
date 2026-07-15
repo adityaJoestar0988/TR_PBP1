@@ -9,6 +9,8 @@ function emptyExpenseForm() {
     date: new Date().toISOString().slice(0, 10),
     type: 'pembelian_bahan_baku',
     raw_material_id: '',
+    unit_price: '',
+    quantity: '',
     amount: '',
     description: '',
   }
@@ -72,6 +74,8 @@ export default function ExpenseListPage() {
       date: item.date?.slice?.(0, 10) || item.date,
       type: item.type,
       raw_material_id: item.raw_material_id || item.rawMaterial?.id || '',
+      unit_price: item.unit_price || '',
+      quantity: item.quantity || '',
       amount: item.amount,
       description: item.description || '',
     })
@@ -91,6 +95,8 @@ export default function ExpenseListPage() {
     const payload = {
       date: form.date,
       type: form.type,
+      unit_price: form.unit_price ? Number(form.unit_price) : null,
+      quantity: form.quantity ? Number(form.quantity) : null,
       amount: Number(form.amount),
       description: form.description || null,
     }
@@ -163,7 +169,9 @@ export default function ExpenseListPage() {
                     <th className="px-4 py-3">Tanggal</th>
                     <th className="px-4 py-3">Tipe</th>
                     <th className="px-4 py-3">Bahan Baku</th>
-                    <th className="px-4 py-3">Jumlah</th>
+                    <th className="px-4 py-3">Harga Satuan</th>
+                    <th className="px-4 py-3">Qty</th>
+                    <th className="px-4 py-3">Nominal (Jumlah)</th>
                     <th className="px-4 py-3">Deskripsi</th>
                     <th className="px-4 py-3">Aksi</th>
                   </tr>
@@ -174,6 +182,8 @@ export default function ExpenseListPage() {
                       <td className="px-4 py-3 text-slate-300">{item.date}</td>
                       <td className="px-4 py-3 text-slate-300">{item.type === 'pembelian_bahan_baku' ? 'Pembelian Bahan Baku' : 'Operasional'}</td>
                       <td className="px-4 py-3 text-slate-300">{getRawMaterialName(item)}</td>
+                      <td className="px-4 py-3 text-slate-300">{item.unit_price ? formatRupiah(item.unit_price) : '-'}</td>
+                      <td className="px-4 py-3 text-slate-300">{item.quantity || '-'}</td>
                       <td className="px-4 py-3 font-medium text-slate-200">{formatRupiah(item.amount)}</td>
                       <td className="px-4 py-3 text-slate-300">{item.description || '-'}</td>
                       <td className="px-4 py-3">
@@ -231,9 +241,38 @@ export default function ExpenseListPage() {
                 </div>
               ) : null}
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-300">Harga Satuan</label>
+                  <input type="number" min="0" step="0.01" value={form.unit_price} onChange={(event) => {
+                    const val = event.target.value;
+                    setForm((current) => {
+                      const next = { ...current, unit_price: val };
+                      if (next.unit_price && next.quantity) {
+                        next.amount = String(Number(next.unit_price) * Number(next.quantity));
+                      }
+                      return next;
+                    });
+                  }} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none" placeholder="Opsional" />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-300">Qty</label>
+                  <input type="number" min="1" step="1" value={form.quantity} onChange={(event) => {
+                    const val = event.target.value;
+                    setForm((current) => {
+                      const next = { ...current, quantity: val };
+                      if (next.unit_price && next.quantity) {
+                        next.amount = String(Number(next.unit_price) * Number(next.quantity));
+                      }
+                      return next;
+                    });
+                  }} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none" placeholder="Opsional" />
+                </div>
+              </div>
+
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">Jumlah</label>
-                <input type="number" min="1" step="1" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none" />
+                <label className="mb-2 block text-sm font-medium text-slate-300">Nominal Total (Jumlah)</label>
+                <input type="number" min="1" step="1" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-white focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none" required />
               </div>
 
               <div>

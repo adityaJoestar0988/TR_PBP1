@@ -16,6 +16,7 @@ export default function StoreSettingsPage() {
 
   // Kasir Config
   const [allowDiscount, setAllowDiscount] = useState(false)
+  const [allowedDiscountType, setAllowedDiscountType] = useState('nominal')
   const [paymentMethods, setPaymentMethods] = useState([])
   const [newMethod, setNewMethod] = useState('')
 
@@ -47,6 +48,7 @@ export default function StoreSettingsPage() {
       setPhone(s.phone || '')
       setReceiptFooter(s.receipt_footer || '')
       setAllowDiscount(s.allow_kasir_discount || false)
+      setAllowedDiscountType(s.allowed_discount_type || 'nominal')
       setPaymentMethods(s.payment_methods || ['Cash'])
     } catch (err) {
       console.error('Failed to fetch settings', err)
@@ -76,6 +78,7 @@ export default function StoreSettingsPage() {
         phone,
         receipt_footer: receiptFooter,
         allow_kasir_discount: allowDiscount,
+        allowed_discount_type: allowDiscount ? allowedDiscountType : null,
         payment_methods: paymentMethods,
       })
       setSuccessMsg('Pengaturan berhasil disimpan!')
@@ -259,12 +262,16 @@ export default function StoreSettingsPage() {
         {/* TAB 2: Konfigurasi Kasir */}
         {activeTab === 'config' && (
           <div className="space-y-6 animate-fade-in">
-            {/* Discount Toggle */}
+            {/* Discount Config */}
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="font-bold">Izinkan Kasir Memberikan Diskon</h3>
-                  <p className="text-sm text-slate-400 mt-1">Jika dimatikan, kasir tidak bisa menerapkan diskon saat transaksi POS.</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {allowDiscount 
+                      ? `Diskon: Aktif — Jenis: ${allowedDiscountType === 'percentage' ? 'Persen (%)' : 'Nominal (Rp)'}` 
+                      : 'Diskon: Non-Aktif'}
+                  </p>
                 </div>
                 <button
                   onClick={() => setAllowDiscount(!allowDiscount)}
@@ -273,6 +280,43 @@ export default function StoreSettingsPage() {
                   <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${allowDiscount ? 'left-8' : 'left-1'}`}></div>
                 </button>
               </div>
+
+              {allowDiscount && (
+                <div className="pt-4 border-t border-slate-800 animate-fade-in">
+                  <label className="block text-sm font-medium text-slate-300 mb-3">Jenis Diskon yang Diizinkan <span className="text-red-400">*</span></label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${allowedDiscountType === 'nominal' ? 'border-cyan-500 bg-cyan-500/20' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                        {allowedDiscountType === 'nominal' && <div className="w-2.5 h-2.5 rounded-full bg-cyan-500"></div>}
+                      </div>
+                      <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Nominal (Rp)</span>
+                      <input 
+                        type="radio" 
+                        name="discountType" 
+                        value="nominal" 
+                        checked={allowedDiscountType === 'nominal'} 
+                        onChange={() => setAllowedDiscountType('nominal')} 
+                        className="hidden" 
+                      />
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${allowedDiscountType === 'percentage' ? 'border-cyan-500 bg-cyan-500/20' : 'border-slate-600 group-hover:border-slate-500'}`}>
+                        {allowedDiscountType === 'percentage' && <div className="w-2.5 h-2.5 rounded-full bg-cyan-500"></div>}
+                      </div>
+                      <span className="text-sm text-slate-300 group-hover:text-white transition-colors">Persen (%)</span>
+                      <input 
+                        type="radio" 
+                        name="discountType" 
+                        value="percentage" 
+                        checked={allowedDiscountType === 'percentage'} 
+                        onChange={() => setAllowedDiscountType('percentage')} 
+                        className="hidden" 
+                      />
+                    </label>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-3">Kasir hanya akan bisa menggunakan jenis diskon yang dipilih ini saat memproses transaksi.</p>
+                </div>
+              )}
             </div>
 
             {/* Payment Methods */}

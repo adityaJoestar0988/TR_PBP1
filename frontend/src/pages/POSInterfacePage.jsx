@@ -23,7 +23,7 @@ export default function POSInterfacePage() {
   const [paymentMethods, setPaymentMethods] = useState(['Cash'])
   
   const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [discountType, setDiscountType] = useState('nominal')
+  const [allowedDiscountType, setAllowedDiscountType] = useState(null)
   const [discountValue, setDiscountValue] = useState('')
   const [paymentMethod, setPaymentMethod] = useState('Cash')
   const [paidAmount, setPaidAmount] = useState('')
@@ -37,6 +37,7 @@ export default function POSInterfacePage() {
         const res = await api.get('/pos/settings')
         setStoreSettings(res.data.data)
         setAllowDiscount(res.data.data.allow_kasir_discount)
+        setAllowedDiscountType(res.data.data.allowed_discount_type)
         const methods = res.data.data.payment_methods || ['Cash']
         setPaymentMethods(methods)
         if (methods.length > 0) {
@@ -151,11 +152,11 @@ export default function POSInterfacePage() {
 
   const discountAmount = useMemo(() => {
     let val = parseFloat(discountValue) || 0;
-    if (discountType === 'percentage') {
+    if (allowedDiscountType === 'percentage') {
         return cartTotal * (val / 100);
     }
     return val;
-  }, [discountValue, discountType, cartTotal])
+  }, [discountValue, allowedDiscountType, cartTotal])
 
   const grandTotal = cartTotal - discountAmount;
   
@@ -180,7 +181,7 @@ export default function POSInterfacePage() {
     try {
         const payload = {
             items: cart.map(item => ({ product_id: item.id, quantity: item.qty })),
-            discount_type: allowDiscount && discountValue ? discountType : null,
+            discount_type: allowDiscount && discountValue ? allowedDiscountType : null,
             discount_value: allowDiscount && discountValue ? parseFloat(discountValue) : null,
             payment_method: paymentMethod,
             paid_amount: parseFloat(paidAmount)
@@ -455,26 +456,18 @@ export default function POSInterfacePage() {
                     </div>
 
                     {/* Discount */}
-                    {allowDiscount && (
+                    {allowDiscount && allowedDiscountType && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">Diskon Kasir</label>
-                            <div className="flex gap-2">
-                                <select 
-                                    value={discountType}
-                                    onChange={e => setDiscountType(e.target.value)}
-                                    className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                                >
-                                    <option value="nominal">Nominal (Rp)</option>
-                                    <option value="percentage">Persen (%)</option>
-                                </select>
-                                <input 
-                                    type="number"
-                                    value={discountValue}
-                                    onChange={e => setDiscountValue(e.target.value)}
-                                    placeholder={discountType === 'percentage' ? '0-100' : '0'}
-                                    className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                                />
-                            </div>
+                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                                Diskon Kasir ({allowedDiscountType === 'percentage' ? 'Persen %' : 'Nominal Rp'})
+                            </label>
+                            <input 
+                                type="number"
+                                value={discountValue}
+                                onChange={e => setDiscountValue(e.target.value)}
+                                placeholder={allowedDiscountType === 'percentage' ? '0-100' : '0'}
+                                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            />
                         </div>
                     )}
 

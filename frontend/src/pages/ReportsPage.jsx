@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
 import PeriodFilter from '../components/PeriodFilter'
+import ReceiptView from '../components/ReceiptView'
 
 export default function ReportsPage() {
   const navigate = useNavigate()
@@ -25,6 +26,16 @@ export default function ReportsPage() {
   const [stockData, setStockData] = useState(null)
   const [profitLossData, setProfitLossData] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [reportError, setReportError] = useState('')
+
+  // Transaction history (for sales tab)
+  const [transactions, setTransactions] = useState([])
+  const [trxPage, setTrxPage] = useState(1)
+  const [trxTotalPages, setTrxTotalPages] = useState(1)
+  const [trxLoading, setTrxLoading] = useState(false)
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [storeSettings, setStoreSettings] = useState(null)
 
   // Sub-filters
   const [stockCategory, setStockCategory] = useState('')
@@ -48,12 +59,16 @@ export default function ReportsPage() {
     if (activeTab === 'cashflow') return; // Cashflow handled by external page
     
     setLoading(true)
+    setReportError('')
     try {
         const params = getEffectiveDates()
         
         if (activeTab === 'sales') {
-            const res = await api.get('/reports/sales', { params })
-            setSalesData(res.data.data)
+            const [salesRes] = await Promise.all([
+                api.get('/reports/sales', { params }),
+                fetchTransactions(1, params)
+            ])
+            setSalesData(salesRes.data.data)
         } else if (activeTab === 'raw-materials') {
             const res = await api.get('/reports/raw-material-purchases', { params })
             setRawMaterialData(res.data.data)
@@ -63,7 +78,7 @@ export default function ReportsPage() {
         } else if (activeTab === 'stock') {
             // Fetch categories if empty
             if (categories.length === 0) {
-                const catRes = await api.get('/pos/categories') // Using the POS category endpoint as it is read-only public
+                const catRes = await api.get('/pos/categories')
                 setCategories(catRes.data.data)
             }
             const stockParams = {}
@@ -75,8 +90,38 @@ export default function ReportsPage() {
         }
     } catch (err) {
         console.error('Failed to fetch report', err)
+        setReportError(err?.response?.data?.message || 'Gagal memuat laporan.')
     } finally {
         setLoading(false)
+    }
+  }
+
+  const fetchTransactions = async (page = 1, dateParams = null) => {
+    setTrxLoading(true)
+    try {
+      const { start_date, end_date } = dateParams || getEffectiveDates()
+      const res = await api.get('/transactions', { params: { page, start_date, end_date } })
+      setTransactions(res.data.data.data)
+      setTrxPage(res.data.data.current_page)
+      setTrxTotalPages(res.data.data.last_page)
+    } catch (err) {
+      console.error('Failed to fetch transactions', err)
+    } finally {
+      setTrxLoading(false)
+    }
+  }
+
+  const openDetail = async (id) => {
+    setDetailLoading(true)
+    setSelectedTransaction(null)
+    try {
+      const res = await api.get(`/transactions/${id}`)
+      setSelectedTransaction(res.data.data)
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Gagal memuat detail transaksi.'
+      alert(msg)
+    } finally {
+      setDetailLoading(false)
     }
   }
 
@@ -84,6 +129,10 @@ export default function ReportsPage() {
     if (periodType === 'custom' && (!startDate || !endDate) && activeTab !== 'stock') return;
     fetchReport()
   }, [activeTab, periodType, date, month, year, startDate, endDate, stockCategory, lowStockOnly])
+
+  useEffect(() => {
+    api.get('/pos/settings').then(res => setStoreSettings(res.data.data)).catch(() => {})
+  }, [])
 
 
   async function handleLogout() {
@@ -151,7 +200,13 @@ export default function ReportsPage() {
             </div>
         )}
 
-        {/* 1. Laporan Penjualan */}
+        {reportError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm">
+                {reportError}
+            </div>
+        )}
+
+        {/* 1. Laporan Penjualan - Stats Summary */}
         {!loading && activeTab === 'sales' && salesData && (
             <div className="space-y-6 animate-fade-in">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -225,6 +280,73 @@ export default function ReportsPage() {
                         </div>
                     </div>
                 </div>
+            </div>
+        )}
+
+        {/* Riwayat Transaksi - always shown on sales tab */}
+        {!loading && activeTab === 'sales' && (
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden flex flex-col animate-fade-in">
+                <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+                    <h2 className="font-bold">Riwayat Transaksi</h2>
+                    <span className="text-xs text-slate-400">Semua transaksi dari semua kasir</span>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-950/50 text-slate-400">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">No. Transaksi</th>
+                                <th className="px-4 py-3 font-medium">Waktu</th>
+                                <th className="px-4 py-3 font-medium">Kasir</th>
+                                <th className="px-4 py-3 font-medium">Metode</th>
+                                <th className="px-4 py-3 font-medium text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800">
+                            {trxLoading ? (
+                                <tr>
+                                    <td colSpan="5" className="px-4 py-8 text-center">
+                                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500 mx-auto"></div>
+                                    </td>
+                                </tr>
+                            ) : transactions.length === 0 ? (
+                                <tr><td colSpan="5" className="px-4 py-8 text-center text-slate-500">Tidak ada transaksi di periode ini.</td></tr>
+                            ) : (
+                                transactions.map(trx => (
+                                    <tr
+                                        key={trx.id}
+                                        onClick={() => openDetail(trx.id)}
+                                        className="hover:bg-slate-800/40 cursor-pointer transition-colors"
+                                    >
+                                        <td className="px-4 py-3 font-medium text-cyan-400">{trx.transaction_number}</td>
+                                        <td className="px-4 py-3 text-slate-300">{formatDate(trx.created_at)}</td>
+                                        <td className="px-4 py-3 text-slate-300">{trx.user?.name || '-'}</td>
+                                        <td className="px-4 py-3">
+                                            <span className="bg-slate-800 px-2.5 py-1 rounded-md text-xs">{trx.payment_method}</span>
+                                        </td>
+                                        <td className="px-4 py-3 font-bold text-right text-green-400">{formatRupiah(trx.total)}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                {trxTotalPages > 1 && (
+                    <div className="px-4 py-3 border-t border-slate-800 flex items-center justify-between bg-slate-950/30">
+                        <span className="text-xs text-slate-400">Halaman {trxPage} dari {trxTotalPages}</span>
+                        <div className="flex gap-2">
+                            <button
+                                disabled={trxPage === 1}
+                                onClick={() => fetchTransactions(trxPage - 1)}
+                                className="px-3 py-1 bg-slate-800 rounded hover:bg-slate-700 disabled:opacity-50 transition-colors text-xs"
+                            >Prev</button>
+                            <button
+                                disabled={trxPage === trxTotalPages}
+                                onClick={() => fetchTransactions(trxPage + 1)}
+                                className="px-3 py-1 bg-slate-800 rounded hover:bg-slate-700 disabled:opacity-50 transition-colors text-xs"
+                            >Next</button>
+                        </div>
+                    </div>
+                )}
             </div>
         )}
 
@@ -436,7 +558,28 @@ export default function ReportsPage() {
         )}
 
       </main>
-      
+
+      {/* Receipt Modal for Sales Report */}
+      {(selectedTransaction || detailLoading) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          {detailLoading ? (
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+          ) : (
+            <div className="relative">
+              <button
+                onClick={() => setSelectedTransaction(null)}
+                className="absolute -right-12 top-0 text-slate-400 hover:text-white transition-colors bg-slate-900 rounded-full p-2 print:hidden"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+              <div className="max-h-[90vh] overflow-y-auto rounded-xl">
+                <ReceiptView transaction={selectedTransaction} settings={storeSettings} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <style dangerouslySetInnerHTML={{__html: `
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

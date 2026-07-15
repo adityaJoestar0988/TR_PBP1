@@ -70,10 +70,10 @@ class ReportController extends Controller
 
         // By Product
         $byProduct = TransactionItem::select(
-                'product_id',
-                DB::raw('MAX(product_name) as product_name'), // taking the max name to resolve naming changes mid-period
-                DB::raw('SUM(quantity) as quantity_sold'),
-                DB::raw('SUM(subtotal) as revenue')
+                'transaction_items.product_id',
+                DB::raw('MAX(transaction_items.product_name) as product_name'), // taking the max name to resolve naming changes mid-period
+                DB::raw('SUM(transaction_items.quantity) as quantity_sold'),
+                DB::raw('SUM(transaction_items.subtotal) as revenue')
             )
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
             ->whereDate('transactions.created_at', '>=', $startDate)

@@ -23,6 +23,8 @@ class UpdateExpenseRequest extends FormRequest
             }],
             'type' => ['required', Rule::in(['pembelian_bahan_baku', 'operasional'])],
             'raw_material_id' => ['required_if:type,pembelian_bahan_baku', 'prohibited_if:type,operasional', 'nullable', 'integer', 'exists:raw_materials,id'],
+            'unit_price' => ['nullable', 'numeric', 'min:0'],
+            'quantity' => ['nullable', 'integer', 'min:1'],
             'amount' => ['required', 'numeric', 'gt:0'],
             'description' => ['nullable', 'string'],
         ];
