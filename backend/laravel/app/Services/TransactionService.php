@@ -12,13 +12,14 @@ class TransactionService
 {
     public function createTransaction(array $data, int $userId): Transaction
     {
+        //menjalankan DB Transaction untuk memastikan semua operasi berhasil atau rollback jika ada error
         return DB::transaction(function () use ($data, $userId) {
             $settings = StoreSetting::first();
             
             $subtotal = 0;
             $itemsToInsert = [];
             
-            // 1. Process items and check stock with lock
+            // Memproses Produk dan Mengecek Stok
             foreach ($data['items'] as $itemData) {
                 // Lock the product for update
                 $product = Product::where('id', $itemData['product_id'])->lockForUpdate()->first();
@@ -46,7 +47,7 @@ class TransactionService
                 ];
             }
             
-            // 2. Discount validation
+            // validasi diskon
             $discountValue = $data['discount_value'] ?? 0;
             $discountType = $data['discount_type'] ?? null;
             $discountAmount = 0;
@@ -83,7 +84,7 @@ class TransactionService
             
             $total = $subtotal - $discountAmount;
             
-            // 3. Payment validation
+            // validasi pembayaran
             $paymentMethod = $data['payment_method'];
             if (!$settings || !in_array($paymentMethod, $settings->payment_methods ?? [])) {
                 throw ValidationException::withMessages([
@@ -100,13 +101,13 @@ class TransactionService
             
             $changeAmount = $paidAmount - $total;
             
-            // 4. Generate transaction number
+            //membuat nomer transaksi
             $today = now()->format('Ymd');
             $countToday = Transaction::whereDate('created_at', now()->toDateString())->count();
             $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
             $transactionNumber = "TRX-{$today}-{$sequence}";
             
-            // 5. Create transaction
+            // menyimpan data Transaksi
             $transaction = Transaction::create([
                 'transaction_number' => $transactionNumber,
                 'user_id' => $userId,
@@ -120,14 +121,13 @@ class TransactionService
                 'status' => 'completed',
             ]);
             
-            // 6. Deduct stock and create items
             foreach ($itemsToInsert as $item) {
                 $product = $item['product'];
                 
-                // Deduct stock
+                // mengurangi Stok Produk
                 $product->decrement('stock', $item['quantity']);
                 
-                // Create transaction item snapshot
+                // Menyimpan Detail Transaksi
                 $transaction->transactionItems()->create([
                     'product_id' => $product->id,
                     'product_name' => $product->name,

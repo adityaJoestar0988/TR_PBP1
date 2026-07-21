@@ -9,7 +9,6 @@ class StoreSetting extends Model
 {
     use HasFactory;
 
-
     protected $fillable = [
         'store_name',
         'address',

@@ -12,7 +12,6 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
-
     protected $fillable = [
         'category_id',
         'name',
@@ -21,7 +20,6 @@ class Product extends Model
         'is_active',
         'image',
     ];
-
 
     protected $casts = [
         'price' => 'decimal:2',

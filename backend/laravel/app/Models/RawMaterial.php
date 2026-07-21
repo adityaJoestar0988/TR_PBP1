@@ -11,13 +11,11 @@ class RawMaterial extends Model
 {
     use HasFactory, SoftDeletes;
 
-
     protected $fillable = [
         'name',
         'unit',
         'image',
     ];
-
 
     protected $appends = ['image_url'];
 

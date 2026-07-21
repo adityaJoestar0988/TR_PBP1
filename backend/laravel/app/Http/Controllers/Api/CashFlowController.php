@@ -35,6 +35,7 @@ class CashFlowController extends Controller
             ->whereDate('date', '>=', $startDate)
             ->whereDate('date', '<=', $endDate);
 
+        //Filter Berdasarkan Jenis Transaksi
         if ($request->has('type') && in_array($request->type, ['in', 'out'])) {
             $query->where('type', $request->type);
         }
@@ -45,7 +46,7 @@ class CashFlowController extends Controller
         ]);
     }
 
-
+    //Menentukan Jenis Periode
     public function summary(Request $request)
     {
         $periodType = $request->query('period', 'monthly');
@@ -62,7 +63,7 @@ class CashFlowController extends Controller
             $month = $request->query('month', now()->month);
             $year = $request->query('year', now()->year);
             $startDate = Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
-            $endDate = Carbon::create($year, $month, 1)->endOfMonth()->toDateString();\
+            $endDate = Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
         //custom
         } elseif ($periodType === 'custom') {
             $startDate = $request->query('start_date');
@@ -81,7 +82,7 @@ class CashFlowController extends Controller
             ], 422);
         }
 
-        // Efficient aggregate query
+        //Menghitung Total Cash In dan Cash Out
         $totals = CashFlow::select('type', DB::raw('SUM(amount) as total'))
             ->whereDate('date', '>=', $startDate)
             ->whereDate('date', '<=', $endDate)
@@ -106,7 +107,7 @@ class CashFlowController extends Controller
         ]);
     }
 
-
+    //Menentukan Rentang Tanggal
     public function dailyBreakdown(Request $request)
     {
         //Ambil tanggal awal & akhir
@@ -137,12 +138,10 @@ class CashFlowController extends Controller
             $groupedData[$row->date][$row->type] = (float) $row->total;
         }
 
-        // Generate zero-filled period
+        //Apabila terdapat tanggal tanpa transaksi, sistem tetap akan menampilkan tanggal tersebut dengan nilai
         $period = CarbonPeriod::create($startDate, $endDate);
         $breakdown = [];
-        
-        $cumulativeSaldo = 0; // if we wanted cumulative, but spec says `{ date, cash_in, cash_out, saldo }` where saldo per day is in - out? 
-        // "saldo" in a daily context usually means net for that day, or running balance. I will use daily net.
+        $cumulativeSaldo = 0;
 
         foreach ($period as $date) {
             $dateString = $date->toDateString();

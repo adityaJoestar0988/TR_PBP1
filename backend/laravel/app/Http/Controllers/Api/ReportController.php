@@ -14,9 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
-    /**
-     * Helper to get start and end dates.
-     */
+    //helper function untuk rentang tanggal
     private function getDateRange(Request $request)
     {
         $startDate = $request->query('start_date');
@@ -30,11 +28,10 @@ class ReportController extends Controller
         return [$startDate, $endDate];
     }
 
-    /**
-     * Generate zero-filled period skeleton
-     */
+    //helper function untuk mengisi tanggal kosong dengan nilai default
     private function generateZeroFilledPeriod($startDate, $endDate, $defaultStructure)
     {
+        //Membuat Periode Tanggal
         $period = CarbonPeriod::create($startDate, $endDate);
         $result = [];
         
@@ -46,9 +43,8 @@ class ReportController extends Controller
         return $result;
     }
 
-    /**
-     * Laporan Penjualan (Sales Report)
-     */
+    //Laporan Penjualan (Sales Report)
+
     public function sales(Request $request)
     {
         [$startDate, $endDate] = $this->getDateRange($request);
@@ -113,9 +109,9 @@ class ReportController extends Controller
         ]);
     }
 
-    /**
-     * Laporan Pembelian Bahan Baku
-     */
+    
+     //Laporan Pembelian Bahan Baku
+  
     public function rawMaterialPurchases(Request $request)
     {
         [$startDate, $endDate] = $this->getDateRange($request);
@@ -129,7 +125,7 @@ class ReportController extends Controller
         $totalPurchases = $expenses->sum('amount');
         $totalTransactions = $expenses->count();
 
-        // By raw material (aggregating in PHP since we need relationship names)
+        
         $byRawMaterialMap = [];
         foreach ($expenses as $expense) {
             $name = $expense->rawMaterial ? $expense->rawMaterial->name : 'Unknown/Deleted';
@@ -172,9 +168,9 @@ class ReportController extends Controller
         ]);
     }
 
-    /**
-     * Laporan Stok Produk (No period filters, current snapshot only)
-     */
+
+    //Laporan Stok Produk (No period filters, current snapshot only)
+
     public function stock(Request $request)
     {
         $lowStockThreshold = 5;
@@ -206,9 +202,9 @@ class ReportController extends Controller
         ]);
     }
 
-    /**
-     * Laporan Laba Rugi
-     */
+
+    //Laporan Laba Rugi
+
     public function profitLoss(Request $request)
     {
         [$startDate, $endDate] = $this->getDateRange($request);
