@@ -17,7 +17,7 @@ class PosController extends Controller
         $query = Product::with('category:id,name')
             ->where('is_active', true)
             ->where('stock', '>', 0)
-            ->select('id', 'name', 'price', 'stock', 'category_id');
+            ->select('id', 'name', 'price', 'stock', 'category_id', 'image');
 
         if ($request->has('search') && $request->search != '') {
             $query->where('name', 'like', '%' . $request->search . '%');
