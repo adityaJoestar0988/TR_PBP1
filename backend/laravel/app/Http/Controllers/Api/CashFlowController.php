@@ -11,11 +11,12 @@ use Illuminate\Support\Facades\DB;
 
 class CashFlowController extends Controller
 {
+    //custom date range
     private function getDateRange(Request $request)
     {
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
-
+        //rentang default
         if (!$startDate || !$endDate) {
             $startDate = now()->startOfMonth()->toDateString();
             $endDate = now()->endOfMonth()->toDateString();
@@ -24,9 +25,7 @@ class CashFlowController extends Controller
         return [$startDate, $endDate];
     }
 
-    /**
-     * Get paginated cashflow ledger.
-     */
+    //Mengambil daftar riwayat transaksi arus kas secara rinci
     public function index(Request $request)
     {
         [$startDate, $endDate] = $this->getDateRange($request);
@@ -46,24 +45,25 @@ class CashFlowController extends Controller
         ]);
     }
 
-    /**
-     * Get cashflow summary based on period.
-     */
+
     public function summary(Request $request)
     {
         $periodType = $request->query('period', 'monthly');
+        //Logika penentuan $startDate & $endDate berdasarkan opsi: daily, monthly, custom
         $startDate = null;
         $endDate = null;
-
+        // untuk harian
         if ($periodType === 'daily') {
             $date = $request->query('date', now()->toDateString());
             $startDate = $date;
             $endDate = $date;
+        //bulanan
         } elseif ($periodType === 'monthly') {
             $month = $request->query('month', now()->month);
             $year = $request->query('year', now()->year);
             $startDate = Carbon::create($year, $month, 1)->startOfMonth()->toDateString();
-            $endDate = Carbon::create($year, $month, 1)->endOfMonth()->toDateString();
+            $endDate = Carbon::create($year, $month, 1)->endOfMonth()->toDateString();\
+        //custom
         } elseif ($periodType === 'custom') {
             $startDate = $request->query('start_date');
             $endDate = $request->query('end_date');
@@ -106,14 +106,14 @@ class CashFlowController extends Controller
         ]);
     }
 
-    /**
-     * Get daily breakdown for charts with zero-filled days.
-     */
+
     public function dailyBreakdown(Request $request)
     {
+        //Ambil tanggal awal & akhir
         $startDate = clone Carbon::parse($request->query('start_date', now()->startOfMonth()));
         $endDate = clone Carbon::parse($request->query('end_date', now()->endOfMonth()));
 
+        //Proteksi maksimal 366 hari
         if ($startDate->diffInDays($endDate) > 366) {
             return response()->json([
                 'status' => 'error',
@@ -121,14 +121,14 @@ class CashFlowController extends Controller
             ], 422);
         }
 
-        // Get actual data from DB grouped by date and type
+        // Query data nyata dari database
         $data = CashFlow::select('date', 'type', DB::raw('SUM(amount) as total'))
             ->whereDate('date', '>=', $startDate->toDateString())
             ->whereDate('date', '<=', $endDate->toDateString())
             ->groupBy('date', 'type')
             ->get();
 
-        // Organize data by date
+        // Pengisian tanggal kosong (Zero-Filling)
         $groupedData = [];
         foreach ($data as $row) {
             if (!isset($groupedData[$row->date])) {

@@ -8,20 +8,18 @@ use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
-    /**
-     * Get paginated transaction history.
-     */
+    //list transaksi
     public function index(Request $request)
     {
         $query = Transaction::with('user:id,name')
             ->orderBy('created_at', 'desc');
 
-        // Filter by user role (Kasir sees only their own, owner sees all)
+        // kasir hanya bisa melihat transaksi dari dia sendiri
         if (auth()->user()->role === 'kasir') {
             $query->where('user_id', auth()->id());
         }
 
-        // Filter by date range
+        // Filter tanggal
         if ($request->has('start_date') && $request->start_date != '') {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
@@ -29,7 +27,7 @@ class TransactionController extends Controller
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
-        // Filter by payment method
+        // Filter payment method
         if ($request->has('payment_method') && $request->payment_method != '') {
             $query->where('payment_method', $request->payment_method);
         }
@@ -40,9 +38,7 @@ class TransactionController extends Controller
         ]);
     }
 
-    /**
-     * Get transaction detail.
-     */
+    //detial transkasi
     public function show($id)
     {
         $transaction = Transaction::with(['transactionItems', 'user:id,name'])->findOrFail($id);

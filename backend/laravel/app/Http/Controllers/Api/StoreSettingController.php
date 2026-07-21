@@ -8,14 +8,13 @@ use Illuminate\Http\Request;
 
 class StoreSettingController extends Controller
 {
-    /**
-     * Get store settings.
-     */
+    //show pengaturan toko
     public function show()
     {
         $settings = StoreSetting::first();
 
         if (!$settings) {
+            // Buat data default
             $settings = StoreSetting::create([
                 'store_name' => 'SMART POS',
                 'address' => 'Alamat Toko',
@@ -33,9 +32,7 @@ class StoreSettingController extends Controller
         ]);
     }
 
-    /**
-     * Update store settings.
-     */
+    //update pengaturan toko
     public function update(Request $request)
     {
         $validated = $request->validate([

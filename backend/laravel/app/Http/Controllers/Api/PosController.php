@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Services\TransactionService;
+use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
@@ -9,9 +11,7 @@ use Illuminate\Http\Request;
 
 class PosController extends Controller
 {
-    /**
-     * Get active products with stock > 0 for POS interface.
-     */
+    
     public function getProducts(Request $request)
     {
         $query = Product::with('category:id,name')
@@ -19,10 +19,11 @@ class PosController extends Controller
             ->where('stock', '>', 0)
             ->select('id', 'name', 'price', 'stock', 'category_id', 'image');
 
+        //filter berdasarkan nama
         if ($request->has('search') && $request->search != '') {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
-
+        //berdasarkan kategoru
         if ($request->has('category_id') && $request->category_id != '') {
             $query->where('category_id', $request->category_id);
         }
@@ -33,9 +34,7 @@ class PosController extends Controller
         ]);
     }
 
-    /**
-     * Get all categories for POS interface filter.
-     */
+    //Get all kategori untuk pos kasir
     public function getCategories()
     {
         $categories = Category::select('id', 'name')->get();
@@ -46,9 +45,7 @@ class PosController extends Controller
         ]);
     }
 
-    /**
-     * Get read-only settings for POS interface.
-     */
+    //Memuat Pengaturan Kasir & Struk
     public function getSettings()
     {
         $settings = \App\Models\StoreSetting::first();
@@ -67,10 +64,8 @@ class PosController extends Controller
         ]);
     }
 
-    /**
-     * Process transaction.
-     */
-    public function storeTransaction(\App\Http\Requests\StoreTransactionRequest $request, \App\Services\TransactionService $service)
+    //Memproses Checkout / Bayar
+    public function storeTransaction(StoreTransactionRequest $request, TransactionService $service)
     {
         $transaction = $service->createTransaction($request->validated(), auth()->id());
         

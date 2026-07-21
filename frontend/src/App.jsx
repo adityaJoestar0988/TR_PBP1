@@ -13,6 +13,7 @@ import CategoryListPage from './pages/CategoryListPage'
 import ReportsPage from './pages/ReportsPage'
 import StoreSettingsPage from './pages/StoreSettingsPage'
 
+
 function RootRedirect() {
   const { user } = useAuth()
 

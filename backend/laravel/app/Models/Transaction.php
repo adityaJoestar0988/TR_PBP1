@@ -14,11 +14,6 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'transaction_number',
         'user_id',
@@ -32,11 +27,6 @@ class Transaction extends Model
         'status',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'subtotal' => 'decimal:2',
         'discount_value' => 'decimal:2',
@@ -45,17 +35,11 @@ class Transaction extends Model
         'change_amount' => 'decimal:2',
     ];
 
-    /**
-     * Kasir who processed this transaction.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Items contained in this transaction.
-     */
     public function transactionItems(): HasMany
     {
         return $this->hasMany(TransactionItem::class);

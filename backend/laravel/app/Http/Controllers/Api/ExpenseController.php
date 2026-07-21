@@ -15,13 +15,16 @@ class ExpenseController extends Controller
     public function index(Request $request): JsonResponse
     {
         $expenses = Expense::query()
-            ->with('rawMaterial')
+            ->with('rawMaterial') //relasi bahan baku
+            //filter jika di isi
             ->when($request->filled('start_date'), function ($query) use ($request) {
                 $query->whereDate('date', '>=', $request->date('start_date'));
             })
+            //filter
             ->when($request->filled('end_date'), function ($query) use ($request) {
                 $query->whereDate('date', '<=', $request->date('end_date'));
             })
+            //filter
             ->when($request->filled('type'), function ($query) use ($request) {
                 $query->where('type', $request->string('type'));
             })
@@ -30,7 +33,7 @@ class ExpenseController extends Controller
 
         return response()->json($expenses);
     }
-
+    //Tambah Pengeluaran di submit
     public function store(StoreExpenseRequest $request): JsonResponse
     {
         $expense = DB::transaction(function () use ($request) {
@@ -46,9 +49,9 @@ class ExpenseController extends Controller
     }
 
     public function update(UpdateExpenseRequest $request, int $id): JsonResponse
-    {
+    {   //cari id
         $expense = Expense::findOrFail($id);
-
+        //update data dalam transaksi
         DB::transaction(function () use ($request, $expense) {
             $expense->update($request->validated());
         });
@@ -61,7 +64,7 @@ class ExpenseController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $expense = Expense::findOrFail($id);
-
+        // Hapus data di dalam Transaction
         DB::transaction(function () use ($expense) {
             $expense->delete();
         });

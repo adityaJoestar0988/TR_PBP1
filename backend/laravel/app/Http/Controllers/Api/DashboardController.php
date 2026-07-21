@@ -11,37 +11,35 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /**
-     * Get dashboard summary data for owner.
-     */
+
     public function summary()
     {
         $today = Carbon::today()->toDateString();
         $sevenDaysAgo = Carbon::today()->subDays(6)->toDateString();
 
-        // Today's sales
+        // penjualan hari ini
         $todayTransactions = Transaction::whereDate('created_at', $today)->get();
-        $todaySales = (float) $todayTransactions->sum('total');
-        $todayTransactionCount = $todayTransactions->count();
+        $todaySales = (float) $todayTransactions->sum('total'); // Total omzet hari ini
+        $todayTransactionCount = $todayTransactions->count(); // Total berapa kali transaksi terjadi
 
-        // Today's cashflow
+        // arus kas
         $todayCashflow = CashFlow::select('type', DB::raw('SUM(amount) as total'))
             ->whereDate('date', $today)
             ->groupBy('type')
             ->pluck('total', 'type');
 
-        $todayCashIn = (float) ($todayCashflow['in'] ?? 0);
-        $todayCashOut = (float) ($todayCashflow['out'] ?? 0);
+        $todayCashIn = (float) ($todayCashflow['in'] ?? 0); // Kas Masuk
+        $todayCashOut = (float) ($todayCashflow['out'] ?? 0); // kas keluar
 
-        // Low stock products (top 5)
-        $lowStockThreshold = 5;
+  
+        $lowStockThreshold = 5; // Batas minimal stok
         $lowStockProducts = Product::where('is_active', true)
             ->where('stock', '<=', $lowStockThreshold)
-            ->orderBy('stock')
+            ->orderBy('stock') //Produk dengan stok paling sedikit muncul paling atas
             ->limit(5)
             ->get(['id', 'name', 'stock']);
 
-        // Sales last 7 days
+        // Query pendapatan harian dari database
         $dailySales = Transaction::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('SUM(total) as revenue')
@@ -52,6 +50,7 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('date');
 
+        //Formatting data menggunakan CarbonPeriod
         $salesLast7Days = [];
         $period = \Carbon\CarbonPeriod::create($sevenDaysAgo, $today);
         foreach ($period as $date) {

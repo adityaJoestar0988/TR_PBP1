@@ -9,11 +9,7 @@ class CashFlow extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'type',
         'amount',
@@ -25,11 +21,6 @@ class CashFlow extends Model
         'description',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'amount' => 'decimal:2',
         'unit_price' => 'decimal:2',

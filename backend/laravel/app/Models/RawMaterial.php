@@ -11,20 +11,14 @@ class RawMaterial extends Model
 {
     use HasFactory, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'name',
         'unit',
         'image',
     ];
 
-    /**
-     * Get the raw material's image URL.
-     */
+
     protected $appends = ['image_url'];
 
     public function getImageUrlAttribute(): ?string
@@ -35,16 +29,9 @@ class RawMaterial extends Model
         return null;
     }
 
-    /**
-     * Expenses associated with this raw material.
-     */
-    public function expenses(): HasMany
+    function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
     }
 
-    /**
-     * Stock adjustments tied to this raw material are not used yet, but the
-     * relation keeps the model consistent with the product-side pattern.
-     */
 }

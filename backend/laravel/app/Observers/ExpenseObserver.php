@@ -14,8 +14,8 @@ class ExpenseObserver
         CashFlow::create([
             'type' => 'out',
             'amount' => $expense->amount,
-            'unit_price' => $expense->unit_price,
-            'quantity' => $expense->quantity,
+            // 'unit_price' => $expense->unit_price,
+            // 'quantity' => $expense->quantity,
             'source_type' => 'expense',
             'source_id' => $expense->id,
             'date' => $expense->date,
@@ -41,8 +41,8 @@ class ExpenseObserver
 
         $cashFlow->update([
             'amount' => $expense->amount,
-            'unit_price' => $expense->unit_price,
-            'quantity' => $expense->quantity,
+            // 'unit_price' => $expense->unit_price,
+            // 'quantity' => $expense->quantity,
             'date' => $expense->date,
             'description' => $this->buildDescription($expense),
         ]);

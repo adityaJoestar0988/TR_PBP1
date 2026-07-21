@@ -10,11 +10,7 @@ class TransactionItem extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'transaction_id',
         'product_id',
@@ -24,28 +20,19 @@ class TransactionItem extends Model
         'subtotal',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
+
     protected $casts = [
         'price' => 'decimal:2',
         'quantity' => 'integer',
         'subtotal' => 'decimal:2',
     ];
 
-    /**
-     * Parent transaction.
-     */
+
     public function transaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class);
     }
 
-    /**
-     * Product snapshot source.
-     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

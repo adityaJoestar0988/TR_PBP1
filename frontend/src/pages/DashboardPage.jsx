@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../api/axios'
+import {
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip
+} from "recharts";
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -47,7 +56,13 @@ export default function DashboardPage() {
     { label: 'Pengaturan', path: '/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
   ]
 
-  const maxRevenue = data?.sales_last_7_days ? Math.max(...data.sales_last_7_days.map(d => d.revenue), 1) : 1
+ const chartData =
+    data?.sales_last_7_days.map(item => ({
+        day: new Date(item.date).toLocaleDateString("id-ID", {
+            weekday: "short",
+        }),
+        revenue: item.revenue,
+    })) || [];
 
   return (
     <div className="w-full">
@@ -84,31 +99,107 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* 7-Day Sales Chart */}
-              <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <h2 className="font-bold mb-4">Tren Penjualan 7 Hari Terakhir</h2>
-                <div className="flex items-end gap-2 h-40">
-                  {data.sales_last_7_days.map((day, idx) => (
-                    <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {day.revenue > 0 ? formatRupiah(day.revenue) : ''}
-                      </span>
-                      <div 
-                        className="w-full bg-cyan-500/20 hover:bg-cyan-500/40 rounded-t-md transition-colors relative group"
-                        style={{ height: `${Math.max((day.revenue / maxRevenue) * 100, 4)}%` }}
-                      >
-                        <div 
-                          className="absolute bottom-0 left-0 right-0 bg-cyan-500 rounded-t-md transition-all"
-                          style={{ height: '100%', opacity: 0.7 }}
-                        ></div>
-                      </div>
-                      <span className="text-[10px] text-slate-500">
-                        {new Date(day.date).toLocaleDateString('id-ID', { weekday: 'short' })}
-                      </span>
+             {/* 7-Day Sales Chart */}
+            <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+
+                <div className="flex justify-between items-center mb-5">
+                    <div>
+                        <h2 className="font-bold text-lg">
+                            Tren Penjualan 7 Hari Terakhir
+                        </h2>
+
+                        <p className="text-sm text-slate-400">
+                            Omzet penjualan selama 7 hari terakhir
+                        </p>
                     </div>
-                  ))}
                 </div>
-              </div>
+
+                <div className="h-80">
+
+                    <ResponsiveContainer
+                        width="100%"
+                        height="100%"
+                    >
+
+                        <BarChart
+                            data={chartData}
+                            margin={{
+                                top: 10,
+                                right: 20,
+                                left: 10,
+                                bottom: 5
+                            }}
+                        >
+
+                            <defs>
+
+                                <linearGradient
+                                    id="salesGradient"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+                                    <stop
+                                        offset="0%"
+                                        stopColor="#22d3ee"
+                                    />
+
+                                    <stop
+                                        offset="100%"
+                                        stopColor="#0891b2"
+                                    />
+
+                                </linearGradient>
+
+                            </defs>
+
+                            <CartesianGrid
+                                stroke="#334155"
+                                strokeDasharray="4 4"
+                            />
+
+                            <XAxis
+                                dataKey="day"
+                                stroke="#94a3b8"
+                                tick={{ fill: "#94a3b8" }}
+                            />
+
+                            <YAxis
+                                stroke="#94a3b8"
+                                tick={{ fill: "#94a3b8" }}
+                                tickFormatter={(value) =>
+                                    `Rp${(value / 1000).toFixed(0)}k`
+                                }
+                            />
+
+                            <Tooltip
+                                formatter={(value) => formatRupiah(value)}
+                                cursor={{
+                                    fill: "rgba(34,211,238,0.08)"
+                                }}
+                                contentStyle={{
+                                    backgroundColor: "#0f172a",
+                                    border: "1px solid #334155",
+                                    borderRadius: "12px",
+                                    color: "#ffffff",
+                                }}
+                            />
+
+                            <Bar
+                                dataKey="revenue"
+                                fill="url(#salesGradient)"
+                                radius={[8, 8, 0, 0]}
+                                barSize={40}
+                            />
+
+                        </BarChart>
+
+                    </ResponsiveContainer>
+
+                </div>
+
+            </div>
 
               {/* Low Stock Alert */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">

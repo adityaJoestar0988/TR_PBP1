@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * List kasir accounts only.
-     */
+    //list akun kasir
     public function index()
     {
         // Always filter to kasir role server-side
@@ -27,16 +25,14 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Create a new kasir account.
-     */
+    //membuat akun kasir baru
     public function store(StoreKasirRequest $request)
     {
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'kasir', // Force kasir role server-side
+            'role' => 'kasir', 
             'is_active' => true,
         ]);
 
@@ -46,9 +42,7 @@ class UserController extends Controller
         ], 201);
     }
 
-    /**
-     * Update a kasir's name/email only.
-     */
+    //update akun kasir
     public function update(UpdateKasirRequest $request, $id)
     {
         $user = User::where('role', 'kasir')->find($id);
@@ -71,9 +65,7 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Toggle a kasir's active status.
-     */
+    //toogle status altif/nonaktif akun kasir
     public function toggleActive($id)
     {
         $user = User::where('role', 'kasir')->find($id);
@@ -95,9 +87,7 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Delete a kasir account (only if no transaction history).
-     */
+    //delete jika tidak ada transaksi
     public function destroy($id)
     {
         $user = User::where('role', 'kasir')->find($id);
