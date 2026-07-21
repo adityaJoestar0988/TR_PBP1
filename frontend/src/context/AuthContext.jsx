@@ -8,12 +8,9 @@ export function AuthProvider({ children }) {
     const savedUser = localStorage.getItem('user')
     return savedUser ? JSON.parse(savedUser) : null
   })
-  
   const [token, setToken] = useState(() => {
     const savedToken = localStorage.getItem('token')
-    if (savedToken) {
-      setAuthToken(savedToken)
-    }
+    if (savedToken) setAuthToken(savedToken)
     return savedToken || null
   })
 
@@ -23,7 +20,7 @@ export function AuthProvider({ children }) {
     setAuthToken(data.token)
     setToken(data.token)
     setUser(data.user)
-    
+
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
 
