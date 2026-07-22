@@ -22,7 +22,7 @@ class UpdateProductRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('products', 'name')->ignore($productId),
+                Rule::unique('products', 'name')->ignore($productId)->whereNull('deleted_at'),
             ],
             'price' => ['required', 'numeric', 'gt:0'],
             'stock' => ['required', 'integer', 'min:0'],

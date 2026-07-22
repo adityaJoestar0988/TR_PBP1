@@ -14,7 +14,12 @@ class StoreRawMaterialRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:raw_materials,name'],
+            'name' => [
+                'required', 
+                'string', 
+                'max:255', 
+                \Illuminate\Validation\Rule::unique('raw_materials', 'name')->whereNull('deleted_at')
+            ],
             'unit' => ['required', 'string', 'max:50'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
         ];

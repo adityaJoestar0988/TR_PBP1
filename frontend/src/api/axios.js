@@ -16,12 +16,25 @@ export function setAuthToken(token) {
   authToken = token
 }
 
-// Pasang token JWT ke setiap request.
+// Pasang token JWT dan Console Log ke setiap request.
 api.interceptors.request.use((config) => {
   if (authToken) {
     config.headers.Authorization = `Bearer ${authToken}`
   }
+  console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data || config.params || '')
   return config
 })
+
+// Console log untuk setiap response yang kembali dari backend
+api.interceptors.response.use(
+  (response) => {
+    console.log(`[API Response] ${response.config.method.toUpperCase()} ${response.config.url} - Success`, response.data)
+    return response
+  },
+  (error) => {
+    console.error(`[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url} - Failed`, error.response?.data || error.message)
+    return Promise.reject(error)
+  }
+)
 
 export default api

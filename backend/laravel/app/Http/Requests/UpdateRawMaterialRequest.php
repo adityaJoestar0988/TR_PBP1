@@ -21,7 +21,7 @@ class UpdateRawMaterialRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('raw_materials', 'name')->ignore($rawMaterialId),
+                Rule::unique('raw_materials', 'name')->ignore($rawMaterialId)->whereNull('deleted_at'),
             ],
             'unit' => ['required', 'string', 'max:50'],
             'image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],

@@ -89,6 +89,8 @@ export default function RawMaterialListPage() {
 
     try {
       await api.delete(`/raw-materials/${item.id}`)
+      setForm(emptyForm())
+      setError('')
       await loadData({ search })
     } catch (err) {
       setError(err?.response?.data?.message || 'Gagal menghapus bahan baku.')

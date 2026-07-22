@@ -16,7 +16,12 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'name' => ['required', 'string', 'max:255', 'unique:products,name'],
+            'name' => [
+                'required', 
+                'string', 
+                'max:255', 
+                \Illuminate\Validation\Rule::unique('products', 'name')->whereNull('deleted_at')
+            ],
             'price' => ['required', 'numeric', 'gt:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
